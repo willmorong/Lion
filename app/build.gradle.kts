@@ -1,3 +1,15 @@
+val chaquopyBuildPython =
+    System.getenv("CHAQUOPY_BUILD_PYTHON")
+        ?.takeIf { it.isNotBlank() }
+        ?: listOf(
+            "/opt/homebrew/bin/python3.10",
+            "/usr/local/bin/python3.10",
+            "/usr/bin/python3.10",
+            "python3.10",
+        ).firstOrNull { candidate ->
+            !candidate.startsWith("/") || file(candidate).exists()
+        }
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -47,7 +59,10 @@ android {
 chaquopy {
     defaultConfig {
         version = "3.10"
-        buildPython("/opt/homebrew/bin/python3.10")
+        val pythonCommand = checkNotNull(chaquopyBuildPython) {
+            "No Python 3.10 interpreter found. Set CHAQUOPY_BUILD_PYTHON to a valid command or path."
+        }
+        buildPython(pythonCommand)
         pip {
             install("magic-wormhole==0.23.0")
         }
